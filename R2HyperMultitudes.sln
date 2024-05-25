@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R2HyperMultitudes", "R2HyperMultitudes\R2HyperMultitudes.csproj", "{72B4E9FB-83DC-4F0C-BC1B-DB7189C5D950}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "R2HyperMultitudes.Test", "R2HyperMultitudes.Test\R2HyperMultitudes.Test.csproj", "{E3F48E41-6FDD-4183-9163-C79EC942E7C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{72B4E9FB-83DC-4F0C-BC1B-DB7189C5D950}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72B4E9FB-83DC-4F0C-BC1B-DB7189C5D950}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72B4E9FB-83DC-4F0C-BC1B-DB7189C5D950}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3F48E41-6FDD-4183-9163-C79EC942E7C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3F48E41-6FDD-4183-9163-C79EC942E7C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3F48E41-6FDD-4183-9163-C79EC942E7C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3F48E41-6FDD-4183-9163-C79EC942E7C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
