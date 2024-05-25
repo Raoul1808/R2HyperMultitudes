@@ -1,7 +1,7 @@
-using System;
 using System.IO;
 using System.Reflection;
 using BepInEx;
+using R2HyperMultitudes.MathParser;
 using UnityEngine;
 
 namespace R2HyperMultitudes
@@ -35,34 +35,16 @@ namespace R2HyperMultitudes
         
         private void Awake()
         {
-            var startConfig = Config.Bind(
+            var expression = Config.Bind(
                 "HyperMultitudes",
-                "StartMultiplier",
-                1,
-                "Sets the starting multiplier for the Hyper Multitudes artifact. Cannot be lower than 1"
+                "MultiplierExpression",
+                "2 * stage",
+                "A mathematical expression which is calculated on every stage to determine the new multitudes multiplier to apply. Supports additions (+), subtractions (-), multiplications (*), divisions (/), parentheses and exponents (^)"
             );
-            var stepConfig = Config.Bind(
-                "HyperMultitudes",
-                "StepMultiplier",
-                1,
-                "Sets the multiplier step increase for the Hyper Multitudes artifact. Cannot be lower than 1"
-            );
-            var exponentialConfig = Config.Bind(
-                "HyperMultitudes",
-                "Exponential",
-                false,
-                "Sets the multiplier to be exponential. In exponential mode, final multiplier is calculated as `ExponentialBase^(Multiplier - 1)`"
-            );
-            var exponentialBase = Config.Bind(
-                "HyperMultitudes",
-                "ExponentialBase",
-                2f,
-                "Sets the exponential base to use for exponential HyperMultitudes scaling. Cannot be lower than 1"
-            );
-            Artifact.StartMultiplier = Math.Max(startConfig.Value, 1);
-            Artifact.StepMultiplier = Math.Max(stepConfig.Value, 1);
-            Artifact.Exponential = exponentialConfig.Value;
-            Artifact.ExponentialBase = Mathf.Max(1f, exponentialBase.Value);
+            var parsedExpression = new ExpressionParser(expression.Value);
+            var startingNode = parsedExpression.Parse();
+            startingNode.Eval(Artifact.StageContext);
+
             var backupMag = LoadTextureFromEmbeddedResource("Backup_Magazine.png");
             var backup = LoadTextureFromEmbeddedResource("The_Back-up.png");
 

@@ -1,8 +1,10 @@
 using System;
+using System.IO;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using R2API;
 using R2API.Utils;
+using R2HyperMultitudes.MathParser;
 using RoR2;
 using UnityEngine;
 
@@ -10,16 +12,39 @@ namespace R2HyperMultitudes
 {
     public static class Artifact
     {
+        public class ModStageContext : IContext
+        {
+            public int Stage { get; set; }
+
+            public double ResolveVariable(string name)
+            {
+                if (name == "Stage")
+                    return Stage;
+                throw new InvalidDataException($"Unknown variable: {name}");
+            }
+        }
+
         public static ArtifactDef HyperMultitudes;
         public static Sprite OnSprite;
         public static Sprite OffSprite;
-        public static int StartMultiplier = 1;
-        public static int StepMultiplier = 1;
-        public static bool Exponential = false;
-        public static float ExponentialBase = 2f;
 
-        private static int _multitudesMultiplier;
-        public static int MultitudesMultiplier => RunArtifactManager.instance.IsArtifactEnabled(HyperMultitudes) ? Exponential ? (int)Math.Pow(ExponentialBase, _multitudesMultiplier - 1) : _multitudesMultiplier : 1;
+        public static Node MultitudesExpression;
+        private static double _precomputedMultitudesMultiplier;
+        public static int MultitudesMultiplier => (int)_precomputedMultitudesMultiplier;
+
+        public static readonly ModStageContext StageContext = new ModStageContext();
+
+        private static int _stageIndex;
+        private static int StageIndex
+        {
+            get => _stageIndex;
+            set
+            {
+                _stageIndex = value;
+                StageContext.Stage = _stageIndex;
+                _precomputedMultitudesMultiplier = Math.Max(MultitudesExpression.Eval(StageContext), 1);
+            }
+        }
 
         private delegate int RunInstanceReturnInt(Run self);
         private static RunInstanceReturnInt _origLivingPlayerCount;
@@ -43,13 +68,13 @@ namespace R2HyperMultitudes
                 if (RunArtifactManager.instance.IsArtifactEnabled(HyperMultitudes))
                 {
                     Log.Info("Increasing HyperMultitudes Multiplier");
-                    _multitudesMultiplier += StepMultiplier;
+                    StageIndex = self.stageClearCount;
                 }
             };
             Run.onRunStartGlobal += run =>
             {
                 Log.Info("Resetting HyperMultitudes Multiplier");
-                _multitudesMultiplier = StartMultiplier;
+                StageIndex = 1;
             };
             var getLivingPlayerHook = new Hook(typeof(Run).GetMethodCached("get_livingPlayerCount"), typeof(Artifact).GetMethodCached(nameof(GetLivingPlayerCountHook)));
             _origLivingPlayerCount = getLivingPlayerHook.GenerateTrampoline<RunInstanceReturnInt>();
