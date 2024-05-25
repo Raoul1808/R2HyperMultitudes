@@ -11,5 +11,6 @@ namespace R2HyperMultitudes.MathParser
         Pow,
         OpenParens,
         CloseParens,
+        Variable,
     }
 }

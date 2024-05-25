@@ -4,7 +4,7 @@ namespace R2HyperMultitudes.MathParser
 {
     public abstract class Node
     {
-        public abstract double Eval();
+        public abstract double Eval(IContext ctx);
     }
 
     public class NodeNumber : Node
@@ -16,7 +16,7 @@ namespace R2HyperMultitudes.MathParser
             _number = number;
         }
 
-        public override double Eval()
+        public override double Eval(IContext ctx)
         {
             return _number;
         }
@@ -35,9 +35,9 @@ namespace R2HyperMultitudes.MathParser
             _op = op;
         }
 
-        public override double Eval()
+        public override double Eval(IContext ctx)
         {
-            return _op(_lhs.Eval(), _rhs.Eval());
+            return _op(_lhs.Eval(ctx), _rhs.Eval(ctx));
         }
     }
 
@@ -52,9 +52,24 @@ namespace R2HyperMultitudes.MathParser
             _op = op;
         }
 
-        public override double Eval()
+        public override double Eval(IContext ctx)
         {
-            return _op(_rhs.Eval());
+            return _op(_rhs.Eval(ctx));
+        }
+    }
+    
+    public class NodeVariable : Node
+    {
+        private string _variableName;
+        
+        public NodeVariable(string variable)
+        {
+            _variableName = variable;
+        }
+        
+        public override double Eval(IContext ctx)
+        {
+            return ctx.ResolveVariable(_variableName);
         }
     }
 }

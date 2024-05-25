@@ -111,6 +111,13 @@ namespace R2HyperMultitudes.MathParser
 
         private Node ParseLeaf()
         {
+            if (_tokenizer.Token == Token.Variable)
+            {
+                var node = new NodeVariable(_tokenizer.Variable);
+                _tokenizer.NextToken();
+                return node;
+            }
+
             if (_tokenizer.Token == Token.Number)
             {
                 var node = new NodeNumber(_tokenizer.Number);

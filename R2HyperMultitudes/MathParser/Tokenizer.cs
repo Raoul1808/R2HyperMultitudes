@@ -10,6 +10,7 @@ namespace R2HyperMultitudes.MathParser
         private char _currentChar;
         
         public double Number { get; private set; }
+        public string Variable { get; private set; }
         public Token Token { get; private set; }
         
         public Tokenizer(StringReader reader)
@@ -72,6 +73,20 @@ namespace R2HyperMultitudes.MathParser
                     NextChar();
                     Token = Token.Pow;
                     return;
+            }
+
+            if (char.IsLetter(_currentChar) || _currentChar == '_')
+            {
+                var sb = new StringBuilder();
+                while (char.IsLetterOrDigit(_currentChar) || _currentChar == '_')
+                {
+                    sb.Append(_currentChar);
+                    NextChar();
+                }
+
+                Variable = sb.ToString();
+                Token = Token.Variable;
+                return;
             }
 
             if (char.IsDigit(_currentChar) || _currentChar == '.')

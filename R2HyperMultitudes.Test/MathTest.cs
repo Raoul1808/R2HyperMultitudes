@@ -8,9 +8,38 @@ namespace R2HyperMultitudes.Test
     {
         private double Parse(string expression)
         {
-            return new ExpressionParser(expression).Parse().Eval();
+            return ParseContext(expression, null);
+        }
+
+        private double ParseContext(string expression, IContext ctx)
+        {
+            return new ExpressionParser(expression).Parse().Eval(ctx);
         }
         
+        private struct CustomContext : IContext
+        {
+            private double _x;
+            private double _y;
+            public CustomContext(double x, double y)
+            {
+                _x = x;
+                _y = y;
+            }
+
+            public double ResolveVariable(string name)
+            {
+                switch (name)
+                {
+                    case "x":
+                        return _x;
+                    case "y":
+                        return _y;
+                }
+
+                throw new InvalidDataException($"Unknown variable: {name}");
+            }
+        }
+
         [SetUp]
         public void Setup()
         {
@@ -80,6 +109,19 @@ namespace R2HyperMultitudes.Test
             Assert.That(Parse("4^0.5"), Is.EqualTo(2));
             Assert.That(Parse("2^(-1)"), Is.EqualTo(0.5));
             Assert.That(Parse("-2^4"), Is.EqualTo(-16));
+        }
+
+        [Test]
+        public void ParserTest6()
+        {
+            CustomContext ctx;
+
+            ctx = new CustomContext(5, 7);
+            Assert.That(ParseContext("x + y", ctx), Is.EqualTo(12));
+
+            ctx = new CustomContext(10, 20);
+            Assert.That(ParseContext("x + y", ctx), Is.EqualTo(30));
+            Assert.That(ParseContext("2 * x + y", ctx), Is.EqualTo(40));
         }
     }
 }
