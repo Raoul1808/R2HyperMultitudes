@@ -101,6 +101,18 @@ namespace R2HyperMultitudes.MathParser
                 return node;
             }
 
+            if (_tokenizer.Token == Token.OpenParens)
+            {
+                _tokenizer.NextToken();
+                var node = ParseAddSubtract();
+
+                if (_tokenizer.Token != Token.CloseParens)
+                    throw new InvalidDataException("Missing close parenthesis");
+                _tokenizer.NextToken();
+
+                return node;
+            }
+
             throw new InvalidDataException($"Unexpected token: {_tokenizer.Token}");
         }
     }

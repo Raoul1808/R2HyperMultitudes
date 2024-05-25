@@ -57,6 +57,16 @@ namespace R2HyperMultitudes.MathParser
                     NextChar();
                     Token = Token.Divide;
                     return;
+                
+                case '(':
+                    NextChar();
+                    Token = Token.OpenParens;
+                    return;
+                
+                case ')':
+                    NextChar();
+                    Token = Token.CloseParens;
+                    return;
             }
 
             if (char.IsDigit(_currentChar) || _currentChar == '.')
