@@ -72,5 +72,14 @@ namespace R2HyperMultitudes.Test
             Assert.That(Parse("1 + (2 * 3)"), Is.EqualTo(7));
             Assert.That(Parse("((1 + 2) * 3 + 4) * 5"), Is.EqualTo(65));
         }
+
+        [Test]
+        public void ParserTest5()
+        {
+            Assert.That(Parse("2^3"), Is.EqualTo(8));
+            Assert.That(Parse("4^0.5"), Is.EqualTo(2));
+            Assert.That(Parse("2^(-1)"), Is.EqualTo(0.5));
+            Assert.That(Parse("-2^4"), Is.EqualTo(-16));
+        }
     }
 }

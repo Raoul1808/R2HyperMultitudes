@@ -8,6 +8,7 @@ namespace R2HyperMultitudes.MathParser
         Subtract,
         Multiply,
         Divide,
+        Pow,
         OpenParens,
         CloseParens,
     }

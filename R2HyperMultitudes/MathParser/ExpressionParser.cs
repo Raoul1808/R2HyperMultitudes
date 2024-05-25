@@ -89,7 +89,24 @@ namespace R2HyperMultitudes.MathParser
                 return new NodeUnary(rhs, a => -a);
             }
 
-            return ParseLeaf();
+            return ParsePow();
+        }
+
+        private Node ParsePow()
+        {
+            var lhs = ParseLeaf();
+
+            while (true)
+            {
+                if (_tokenizer.Token == Token.Pow)
+                {
+                    _tokenizer.NextToken();
+                    var rhs = ParseLeaf();
+                    lhs = new NodeBinary(lhs, rhs, Math.Pow);
+                }
+
+                return lhs;
+            }
         }
 
         private Node ParseLeaf()
