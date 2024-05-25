@@ -24,7 +24,7 @@ namespace R2HyperMultitudes.MathParser
 
         private Node ParseAddSubtract()
         {
-            var lhs = ParseLeaf();
+            var lhs = ParseMultiplyDivide();
 
             while (true)
             {
@@ -43,9 +43,53 @@ namespace R2HyperMultitudes.MathParser
                     return lhs;
                 
                 _tokenizer.NextToken();
-                var rhs = ParseLeaf();
+                var rhs = ParseMultiplyDivide();
                 lhs = new NodeBinary(lhs, rhs, op);
             }
+        }
+
+        private Node ParseMultiplyDivide()
+        {
+            var lhs = ParseUnary();
+
+            while (true)
+            {
+                Func<double, double, double> op = null;
+                switch (_tokenizer.Token)
+                {
+                    case Token.Multiply:
+                        op = (a, b) => a * b;
+                        break;
+                    case Token.Divide:
+                        op = (a, b) => a / b;
+                        break;
+                }
+
+                if (op == null)
+                    return lhs;
+                
+                _tokenizer.NextToken();
+                var rhs = ParseUnary();
+                lhs = new NodeBinary(lhs, rhs, op);
+            }
+        }
+
+        private Node ParseUnary()
+        {
+            if (_tokenizer.Token == Token.Add)
+            {
+                _tokenizer.NextToken();
+                return ParseUnary();
+            }
+
+            if (_tokenizer.Token == Token.Subtract)
+            {
+                _tokenizer.NextToken();
+                var rhs = ParseUnary();
+                return new NodeUnary(rhs, a => -a);
+            }
+
+            return ParseLeaf();
         }
 
         private Node ParseLeaf()

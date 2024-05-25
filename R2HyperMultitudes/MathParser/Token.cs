@@ -6,5 +6,7 @@ namespace R2HyperMultitudes.MathParser
         Number,
         Add,
         Subtract,
+        Multiply,
+        Divide,
     }
 }

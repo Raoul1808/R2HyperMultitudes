@@ -40,4 +40,21 @@ namespace R2HyperMultitudes.MathParser
             return _op(_lhs.Eval(), _rhs.Eval());
         }
     }
+
+    public class NodeUnary : Node
+    {
+        private Node _rhs;
+        private Func<double, double> _op;
+
+        public NodeUnary(Node rhs, Func<double, double> op)
+        {
+            _rhs = rhs;
+            _op = op;
+        }
+
+        public override double Eval()
+        {
+            return _op(_rhs.Eval());
+        }
+    }
 }
