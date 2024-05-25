@@ -16,9 +16,10 @@ namespace R2HyperMultitudes
         public static int StartMultiplier = 1;
         public static int StepMultiplier = 1;
         public static bool Exponential = false;
+        public static float ExponentialBase = 2f;
 
         private static int _multitudesMultiplier;
-        public static int MultitudesMultiplier => RunArtifactManager.instance.IsArtifactEnabled(HyperMultitudes) ? Exponential ? (int)Math.Pow(2, _multitudesMultiplier - 1) : _multitudesMultiplier : 1;
+        public static int MultitudesMultiplier => RunArtifactManager.instance.IsArtifactEnabled(HyperMultitudes) ? Exponential ? (int)Math.Pow(ExponentialBase, _multitudesMultiplier - 1) : _multitudesMultiplier : 1;
 
         private delegate int RunInstanceReturnInt(Run self);
         private static RunInstanceReturnInt _origLivingPlayerCount;

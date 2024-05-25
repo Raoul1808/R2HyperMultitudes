@@ -51,11 +51,18 @@ namespace R2HyperMultitudes
                 "HyperMultitudes",
                 "Exponential",
                 false,
-                "Sets the multiplier to be exponential. In exponential mode, final multiplier is calculated as `2^(multiplier - 1)`"
+                "Sets the multiplier to be exponential. In exponential mode, final multiplier is calculated as `ExponentialBase^(Multiplier - 1)`"
+            );
+            var exponentialBase = Config.Bind(
+                "HyperMultitudes",
+                "ExponentialBase",
+                2f,
+                "Sets the exponential base to use for exponential HyperMultitudes scaling. Cannot be lower than 1"
             );
             Artifact.StartMultiplier = Math.Max(startConfig.Value, 1);
             Artifact.StepMultiplier = Math.Max(stepConfig.Value, 1);
             Artifact.Exponential = exponentialConfig.Value;
+            Artifact.ExponentialBase = Mathf.Max(1f, exponentialBase.Value);
             var backupMag = LoadTextureFromEmbeddedResource("Backup_Magazine.png");
             var backup = LoadTextureFromEmbeddedResource("The_Back-up.png");
 
