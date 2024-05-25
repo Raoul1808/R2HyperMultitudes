@@ -6,6 +6,11 @@ namespace R2HyperMultitudes.Test
 {
     public class Tests
     {
+        private double Parse(string expression)
+        {
+            return new ExpressionParser(expression).Parse().Eval();
+        }
+        
         [SetUp]
         public void Setup()
         {
@@ -29,6 +34,14 @@ namespace R2HyperMultitudes.Test
             t.NextToken();
             
             Assert.That(t.Token, Is.EqualTo(Token.None));
+        }
+
+        [Test]
+        public void ParserTest()
+        {
+            Assert.That(Parse("10 + 20"), Is.EqualTo(30));
+            Assert.That(Parse("10 - 20"), Is.EqualTo(-10));
+            Assert.That(Parse("700 + 20 + 7"), Is.EqualTo(727));
         }
     }
 }
