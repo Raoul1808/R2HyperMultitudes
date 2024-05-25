@@ -13,6 +13,8 @@ namespace R2HyperMultitudes
         public static ArtifactDef HyperMultitudes = ScriptableObject.CreateInstance<ArtifactDef>();
         public static Sprite OnSprite;
         public static Sprite OffSprite;
+        public static int StartMultiplier = 1;
+        public static int StepMultiplier = 1;
 
         private static int _multitudesMultiplier;
         public static int MultitudesMultiplier => RunArtifactManager.instance.IsArtifactEnabled(HyperMultitudes) ? _multitudesMultiplier : 1;
@@ -34,13 +36,13 @@ namespace R2HyperMultitudes
                 if (RunArtifactManager.instance.IsArtifactEnabled(HyperMultitudes))
                 {
                     Log.Info("Increasing HyperMultitudes Multiplier");
-                    _multitudesMultiplier++;
+                    _multitudesMultiplier += StepMultiplier;
                 }
             };
             Run.onRunStartGlobal += run =>
             {
                 Log.Info("Resetting HyperMultitudes Multiplier");
-                _multitudesMultiplier = 1;
+                _multitudesMultiplier = StartMultiplier;
             };
             var getLivingPlayerHook = new Hook(typeof(Run).GetMethodCached("get_livingPlayerCount"), typeof(Artifact).GetMethodCached(nameof(GetLivingPlayerCountHook)));
             _origLivingPlayerCount = getLivingPlayerHook.GenerateTrampoline<RunInstanceReturnInt>();

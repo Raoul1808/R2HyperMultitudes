@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Reflection;
 using BepInEx;
@@ -34,6 +35,20 @@ namespace R2HyperMultitudes
         
         private void Awake()
         {
+            var startConfig = Config.Bind(
+                "HyperMultitudes",
+                "StartMultiplier",
+                1,
+                "Sets the starting multiplier for the Hyper Multitudes artifact. Cannot be lower than 1"
+            );
+            var stepConfig = Config.Bind(
+                "HyperMultitudes",
+                "StepMultiplier",
+                1,
+                "Sets the multiplier step increase for the Hyper Multitudes artifact. Cannot be lower than 1"
+            );
+            Artifact.StartMultiplier = Math.Max(startConfig.Value, 1);
+            Artifact.StepMultiplier = Math.Max(stepConfig.Value, 1);
             var backupMag = LoadTextureFromEmbeddedResource("Backup_Magazine.png");
             var backup = LoadTextureFromEmbeddedResource("The_Back-up.png");
 
