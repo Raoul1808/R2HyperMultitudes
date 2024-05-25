@@ -10,14 +10,15 @@ namespace R2HyperMultitudes
 {
     public static class Artifact
     {
-        public static ArtifactDef HyperMultitudes = ScriptableObject.CreateInstance<ArtifactDef>();
+        public static ArtifactDef HyperMultitudes;
         public static Sprite OnSprite;
         public static Sprite OffSprite;
         public static int StartMultiplier = 1;
         public static int StepMultiplier = 1;
+        public static bool Exponential = false;
 
         private static int _multitudesMultiplier;
-        public static int MultitudesMultiplier => RunArtifactManager.instance.IsArtifactEnabled(HyperMultitudes) ? _multitudesMultiplier : 1;
+        public static int MultitudesMultiplier => RunArtifactManager.instance.IsArtifactEnabled(HyperMultitudes) ? Exponential ? (int)Math.Pow(2, _multitudesMultiplier - 1) : _multitudesMultiplier : 1;
 
         private delegate int RunInstanceReturnInt(Run self);
         private static RunInstanceReturnInt _origLivingPlayerCount;
@@ -25,7 +26,12 @@ namespace R2HyperMultitudes
 
         public static void Init()
         {
-            HyperMultitudes.nameToken = "Artifact of Hyper Multitudes";
+            LanguageAPI.Add("ARTIFACT_HYPERMULTITUDES_NAME", "Artifact of Hyper Multitudes");
+            LanguageAPI.Add("ARTIFACT_HYPERMULTITUDES_DESC", "Increasing multitudes power per stage");
+            HyperMultitudes = ScriptableObject.CreateInstance<ArtifactDef>();
+            HyperMultitudes.cachedName = "ARTIFACT_HYPERMULTITUDES";
+            HyperMultitudes.nameToken = "ARTIFACT_HYPERMULTITUDES_NAME";
+            HyperMultitudes.descriptionToken = "ARTIFACT_HYPERMULTITUDES_DESC";
             HyperMultitudes.smallIconSelectedSprite = OnSprite;
             HyperMultitudes.smallIconDeselectedSprite = OffSprite;
             ContentAddition.AddArtifactDef(HyperMultitudes);

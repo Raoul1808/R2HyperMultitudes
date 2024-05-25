@@ -47,8 +47,15 @@ namespace R2HyperMultitudes
                 1,
                 "Sets the multiplier step increase for the Hyper Multitudes artifact. Cannot be lower than 1"
             );
+            var exponentialConfig = Config.Bind(
+                "HyperMultitudes",
+                "Exponential",
+                false,
+                "Sets the multiplier to be exponential. In exponential mode, final multiplier is calculated as `2^(multiplier - 1)`"
+            );
             Artifact.StartMultiplier = Math.Max(startConfig.Value, 1);
             Artifact.StepMultiplier = Math.Max(stepConfig.Value, 1);
+            Artifact.Exponential = exponentialConfig.Value;
             var backupMag = LoadTextureFromEmbeddedResource("Backup_Magazine.png");
             var backup = LoadTextureFromEmbeddedResource("The_Back-up.png");
 
