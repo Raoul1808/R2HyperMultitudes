@@ -29,8 +29,7 @@ namespace R2HyperMultitudes
         public static Sprite OffSprite;
 
         public static Node MultitudesExpression;
-        private static double _precomputedMultitudesMultiplier;
-        public static int MultitudesMultiplier => (int)_precomputedMultitudesMultiplier;
+        public static double MultitudesMultiplier { get; private set; }
 
         public static readonly ModStageContext StageContext = new ModStageContext();
 
@@ -42,7 +41,8 @@ namespace R2HyperMultitudes
             {
                 _stageIndex = value;
                 StageContext.Stage = _stageIndex;
-                _precomputedMultitudesMultiplier = Math.Max(MultitudesExpression.Eval(StageContext), 1);
+                MultitudesMultiplier = Math.Max(MultitudesExpression.Eval(StageContext), 1);
+                Log.Info("HyperMultitudes Multiplier = " + MultitudesMultiplier);
             }
         }
 
@@ -67,7 +67,6 @@ namespace R2HyperMultitudes
                 orig(self, nextScene);
                 if (RunArtifactManager.instance.IsArtifactEnabled(HyperMultitudes))
                 {
-                    Log.Info("Increasing HyperMultitudes Multiplier");
                     StageIndex = self.stageClearCount;
                 }
             };
@@ -86,7 +85,7 @@ namespace R2HyperMultitudes
                 var c = new ILCursor(il);
                 if (c.TryGotoNext(MoveType.After, i => i.MatchCallOrCallvirt<Run>("get_livingPlayerCount")))
                 {
-                    c.EmitDelegate<Func<int, int>>(livingPlayerCount => livingPlayerCount / MultitudesMultiplier);
+                    c.EmitDelegate<Func<int, int>>(livingPlayerCount => _origLivingPlayerCountValue);
                 }
             };
             IL.RoR2.MultiBodyTrigger.FixedUpdate += il =>
@@ -94,12 +93,18 @@ namespace R2HyperMultitudes
                 var c = new ILCursor(il);
                 if (c.TryGotoNext(MoveType.After, i => i.MatchCallOrCallvirt<Run>("get_livingPlayerCount")))
                 {
-                    c.EmitDelegate<Func<int, int>>(livingPlayerCount => livingPlayerCount / MultitudesMultiplier);
+                    c.EmitDelegate<Func<int, int>>(livingPlayerCount => _origLivingPlayerCountValue);
                 }
             };
         }
 
-        private static int GetLivingPlayerCountHook(Run self) => _origLivingPlayerCount(self) * MultitudesMultiplier;
-        private static int GetParticipatingPlayerCountHook(Run self) => _origParticipatingPlayerCount(self) * MultitudesMultiplier;
+        private static int _origLivingPlayerCountValue;
+        
+        private static int GetLivingPlayerCountHook(Run self)
+        {
+            _origLivingPlayerCountValue = _origLivingPlayerCount(self);
+            return (int)(_origLivingPlayerCountValue * MultitudesMultiplier);
+        }
+        private static int GetParticipatingPlayerCountHook(Run self) => (int)(_origParticipatingPlayerCount(self) * MultitudesMultiplier);
     }
 }
