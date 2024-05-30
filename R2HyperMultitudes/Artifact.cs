@@ -18,7 +18,7 @@ namespace R2HyperMultitudes
 
             public double ResolveVariable(string name)
             {
-                if (name == "Stage")
+                if (name.ToLower() == "stage")
                     return Stage;
                 throw new InvalidDataException($"Unknown variable: {name}");
             }

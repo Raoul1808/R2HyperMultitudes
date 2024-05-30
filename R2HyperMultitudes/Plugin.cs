@@ -42,8 +42,8 @@ namespace R2HyperMultitudes
                 "A mathematical expression which is calculated on every stage to determine the new multitudes multiplier to apply. Supports additions (+), subtractions (-), multiplications (*), divisions (/), parentheses and exponents (^)"
             );
             var parsedExpression = new ExpressionParser(expression.Value);
-            var startingNode = parsedExpression.Parse();
-            startingNode.Eval(Artifact.StageContext);
+            Artifact.MultitudesExpression = parsedExpression.Parse();
+            Artifact.MultitudesExpression.Eval(Artifact.StageContext);
 
             var backupMag = LoadTextureFromEmbeddedResource("Backup_Magazine.png");
             var backup = LoadTextureFromEmbeddedResource("The_Back-up.png");
