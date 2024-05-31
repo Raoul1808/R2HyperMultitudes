@@ -35,15 +35,25 @@ namespace R2HyperMultitudes
         
         private void Awake()
         {
+            Log.Init(Logger);
+
             var expression = Config.Bind(
                 "HyperMultitudes",
                 "MultiplierExpression",
                 "2 * stage",
                 "A mathematical expression which is calculated on every stage to determine the new multitudes multiplier to apply. Supports additions (+), subtractions (-), multiplications (*), divisions (/), parentheses and exponents (^)"
             );
+            Log.Info("Loading expression: " + expression.Value);
             var parsedExpression = new ExpressionParser(expression.Value);
             Artifact.MultitudesExpression = parsedExpression.Parse();
             Artifact.MultitudesExpression.Eval(Artifact.StageContext);
+            Log.Info("Testing expression");
+            for (int i = 1; i < 10; i++)
+            {
+                Artifact.StageIndex = i;
+            }
+            Log.Info("Test ended");
+            Artifact.StageIndex = 1;
 
             var backupMag = LoadTextureFromEmbeddedResource("Backup_Magazine.png");
             var backup = LoadTextureFromEmbeddedResource("The_Back-up.png");
@@ -51,8 +61,6 @@ namespace R2HyperMultitudes
             Artifact.OnSprite = Sprite.Create(backupMag, RectFromTex(backupMag), Vector2.zero);
             Artifact.OffSprite = Sprite.Create(backup, RectFromTex(backup), Vector2.zero);
             
-            Log.Init(Logger);
-            Log.Info($"Hello from {Name}!");
             Artifact.Init();
         }
     }

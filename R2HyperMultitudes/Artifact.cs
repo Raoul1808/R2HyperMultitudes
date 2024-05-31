@@ -14,7 +14,7 @@ namespace R2HyperMultitudes
     {
         public class ModStageContext : IContext
         {
-            public int Stage { get; set; }
+            public double Stage { get; set; }
 
             public double ResolveVariable(string name)
             {
@@ -34,7 +34,7 @@ namespace R2HyperMultitudes
         public static readonly ModStageContext StageContext = new ModStageContext();
 
         private static int _stageIndex;
-        private static int StageIndex
+        public static int StageIndex
         {
             get => _stageIndex;
             set
@@ -67,7 +67,8 @@ namespace R2HyperMultitudes
                 orig(self, nextScene);
                 if (RunArtifactManager.instance.IsArtifactEnabled(HyperMultitudes))
                 {
-                    StageIndex = self.stageClearCount;
+                    if (nextScene.sceneType == SceneType.Stage)
+                        StageIndex += 1;
                 }
             };
             Run.onRunStartGlobal += run =>
