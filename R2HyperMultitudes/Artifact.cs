@@ -12,18 +12,6 @@ namespace R2HyperMultitudes
 {
     public static class Artifact
     {
-        public class ModStageContext : IContext
-        {
-            public double Stage { get; set; }
-
-            public double ResolveVariable(string name)
-            {
-                if (name.ToLower() == "stage")
-                    return Stage;
-                throw new InvalidDataException($"Unknown variable: {name}");
-            }
-        }
-
         public static ArtifactDef HyperMultitudes;
         public static Sprite OnSprite;
         public static Sprite OffSprite;
@@ -42,7 +30,9 @@ namespace R2HyperMultitudes
                 _stageIndex = value;
                 StageContext.Stage = _stageIndex;
                 MultitudesMultiplier = Math.Max(MultitudesExpression.Eval(StageContext), 1);
-                Log.Info("HyperMultitudes Multiplier = " + MultitudesMultiplier);
+                string hmLog = "HyperMultitudes Multiplier = " + MultitudesMultiplier;
+                Debug.Log(hmLog);
+                Log.Info(hmLog);
             }
         }
 
