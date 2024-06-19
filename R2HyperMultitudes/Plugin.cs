@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Globalization;
 using BepInEx;
 using BepInEx.Configuration;
@@ -88,10 +89,7 @@ namespace R2HyperMultitudes
                 if (_hypermultitudesEnabled.Value)
                 {
                     if (nextScene.sceneType == SceneType.Stage)
-                    {
                         StageIndex += 1;
-                        SendChatScaling();
-                    }
                 }
             };
             Run.onRunStartGlobal += run =>
@@ -120,6 +118,19 @@ namespace R2HyperMultitudes
                     c.EmitDelegate<Func<int, int>>(livingPlayerCount => _origLivingPlayerCountValue);
                 }
             };
+            Stage.onStageStartGlobal += stage =>
+            {
+                if (_hypermultitudesEnabled.Value)
+                {
+                    StartCoroutine(SendChatScalingDelayed());
+                }
+            };
+        }
+
+        IEnumerator SendChatScalingDelayed()
+        {
+            yield return new WaitForSeconds(2);
+            SendChatScaling();
         }
 
         private static void SendChatScaling()
