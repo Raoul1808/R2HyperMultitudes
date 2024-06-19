@@ -175,7 +175,7 @@ namespace R2HyperMultitudes
         [ConCommand(commandName = "mod_hm_enable", flags = ConVarFlags.SenderMustBeServer, helpText = "Enable HyperMultitudes")]
         private static void CCEnable(ConCommandArgs args)
         {
-            if (args.Count == 0)
+            if (args.Count != 0)
             {
                 Debug.LogError("Invalid arguments. Did you mean mod_hm_set_expression or mod_hm_test_expression?");
                 return;
@@ -193,7 +193,7 @@ namespace R2HyperMultitudes
         [ConCommand(commandName = "mod_hm_disable", flags = ConVarFlags.SenderMustBeServer, helpText = "Disable HyperMultitudes")]
         private static void CCDisable(ConCommandArgs args)
         {
-            if (args.Count == 0)
+            if (args.Count != 0)
             {
                 Debug.LogError("Invalid arguments. Did you mean mod_hm_set_expression or mod_hm_test_expression?");
                 return;
