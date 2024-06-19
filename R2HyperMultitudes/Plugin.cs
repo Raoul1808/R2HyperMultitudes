@@ -130,7 +130,7 @@ namespace R2HyperMultitudes
             Chat.SendBroadcastChat(
                 new Chat.SimpleChatMessage()
                 {
-                    baseToken = "HyperMultitudes Multiplier now at: ",
+                    baseToken = "HyperMultitudes Multiplier now at: {0}",
                     paramTokens = new[] { MultitudesMultiplier.ToString(CultureInfo.InvariantCulture) }
                 }
             );
@@ -144,7 +144,7 @@ namespace R2HyperMultitudes
             Chat.SendBroadcastChat(
                 new Chat.SimpleChatMessage()
                 {
-                    baseToken = "HyperMultitudes Expression set to: {}",
+                    baseToken = "HyperMultitudes Expression set to: {0}",
                     paramTokens = new[] { _scalingExpression.Value },
                 }
             );
