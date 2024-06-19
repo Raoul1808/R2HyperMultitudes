@@ -22,9 +22,7 @@
 
     <ItemGroup>
       <None Remove="Backup_Magazine.png" />
-      <EmbeddedResource Include="Backup_Magazine.png" />
       <None Remove="The_Back-up.png" />
-      <EmbeddedResource Include="The_Back-up.png" />
     </ItemGroup>
 
 </Project>

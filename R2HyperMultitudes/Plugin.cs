@@ -1,10 +1,9 @@
 using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
 using BepInEx;
 using BepInEx.Configuration;
+using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
+using R2API.Utils;
 using R2HyperMultitudes.MathParser;
 using RoR2;
 using UnityEngine;
@@ -14,65 +13,169 @@ namespace R2HyperMultitudes
 {
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInPlugin(Guid, Name, Version)]
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync)]
     public class Plugin : BaseUnityPlugin
     {
+        #region Plugin Info
         public const string Guid = Author + "." + Name;
         public const string Author = "Raoul1808";
         public const string Name = "R2HyperMultitudes";
         public const string Version = "0.1.0";
+        #endregion
 
+        #region Config
         private static ConfigEntry<string> _scalingExpression;
+        private static ConfigEntry<bool> _hypermultitudesEnabled;
+        #endregion
 
-        private Texture2D LoadTextureFromEmbeddedResource(string name)
+        #region Variables
+        public static Node MultitudesExpression;
+        public static double MultitudesMultiplier { get; private set; }
+
+        public static readonly ModStageContext StageContext = new ModStageContext();
+
+        private static int _stageIndex;
+
+        public static int StageIndex
         {
-            byte[] backupMagImageData;
-            using (Stream imageStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("R2HyperMultitudes." + name))
+            get => _stageIndex;
+            set
             {
-                using (MemoryStream mem = new MemoryStream())
-                {
-                    imageStream.CopyTo(mem);
-                    backupMagImageData = mem.ToArray();
-                }
+                _stageIndex = value;
+                StageContext.Stage = _stageIndex;
+                MultitudesMultiplier = Math.Max(MultitudesExpression.Eval(StageContext), 1);
+                string hmLog = "HyperMultitudes Multiplier = " + MultitudesMultiplier;
+                Debug.Log(hmLog);
+                Log.Info(hmLog);
             }
-            var tex = new Texture2D(1, 1);
-            tex.LoadImage(backupMagImageData);
-            return tex;
         }
+        #endregion
 
-        private Rect RectFromTex(Texture2D tex) => new Rect(0, 0, tex.width, tex.height);
-        
         private void Awake()
         {
             Log.Init(Logger);
 
+            _hypermultitudesEnabled = Config.Bind(
+                "HyperMultitudes",
+                "Enabled",
+                true,
+                "Whether HyperMultitudes should be enabled or not"
+            );
             _scalingExpression = Config.Bind(
                 "HyperMultitudes",
                 "MultiplierExpression",
                 "2 * stage",
                 "A mathematical expression which is calculated on every stage to determine the new multitudes multiplier to apply. Supports additions (+), subtractions (-), multiplications (*), divisions (/), parentheses and exponents (^)"
             );
+
             Log.Info("Loading expression: " + _scalingExpression.Value);
             var parsedExpression = new ExpressionParser(_scalingExpression.Value);
-            Artifact.MultitudesExpression = parsedExpression.Parse();
-            Artifact.MultitudesExpression.Eval(Artifact.StageContext);
+            MultitudesExpression = parsedExpression.Parse();
+            MultitudesExpression.Eval(StageContext);
             Log.Info("Testing expression");
             for (int i = 1; i < 10; i++)
             {
-                Artifact.StageIndex = i;
+                StageIndex = i;
             }
             Log.Info("Test ended");
-            Artifact.StageIndex = 1;
+            StageIndex = 1;
 
-            var backupMag = LoadTextureFromEmbeddedResource("Backup_Magazine.png");
-            var backup = LoadTextureFromEmbeddedResource("The_Back-up.png");
+            On.RoR2.Run.AdvanceStage += (orig, self, nextScene) =>
+            {
+                orig(self, nextScene);
+                if (_hypermultitudesEnabled.Value)
+                {
+                    if (nextScene.sceneType == SceneType.Stage)
+                        StageIndex += 1;
+                }
+            };
+            Run.onRunStartGlobal += run =>
+            {
+                Log.Info("Resetting HyperMultitudes Multiplier");
+                StageIndex = 1;
+            };
+            var getLivingPlayerHook = new Hook(typeof(Run).GetMethodCached("get_livingPlayerCount"), typeof(Plugin).GetMethodCached(nameof(GetLivingPlayerCountHook)));
+            _origLivingPlayerCount = getLivingPlayerHook.GenerateTrampoline<RunInstanceReturnInt>();
+            var getParticipatingPlayerHook = new Hook(typeof(Run).GetMethodCached("get_participatingPlayerCount"), typeof(Plugin).GetMethodCached(nameof(GetParticipatingPlayerCountHook)));
+            _origParticipatingPlayerCount = getParticipatingPlayerHook.GenerateTrampoline<RunInstanceReturnInt>();
 
-            Artifact.OnSprite = Sprite.Create(backupMag, RectFromTex(backupMag), Vector2.zero);
-            Artifact.OffSprite = Sprite.Create(backup, RectFromTex(backup), Vector2.zero);
-            
-            Artifact.Init();
+            IL.RoR2.AllPlayersTrigger.FixedUpdate += il =>
+            {
+                var c = new ILCursor(il);
+                if (c.TryGotoNext(MoveType.After, i => i.MatchCallOrCallvirt<Run>("get_livingPlayerCount")))
+                {
+                    c.EmitDelegate<Func<int, int>>(livingPlayerCount => _origLivingPlayerCountValue);
+                }
+            };
+            IL.RoR2.MultiBodyTrigger.FixedUpdate += il =>
+            {
+                var c = new ILCursor(il);
+                if (c.TryGotoNext(MoveType.After, i => i.MatchCallOrCallvirt<Run>("get_livingPlayerCount")))
+                {
+                    c.EmitDelegate<Func<int, int>>(livingPlayerCount => _origLivingPlayerCountValue);
+                }
+            };
         }
 
-        [ConCommand(commandName = "hm_set_expression", flags = ConVarFlags.SenderMustBeServer, helpText = "Set HyperMultitudes scaling equation")]
+        #region Hooks
+        private delegate int RunInstanceReturnInt(Run self);
+        private static RunInstanceReturnInt _origLivingPlayerCount;
+        private static RunInstanceReturnInt _origParticipatingPlayerCount;
+
+        private static int _origLivingPlayerCountValue;
+        private static int _origParticipatingPlayerCountValue;
+        
+        private static int GetLivingPlayerCountHook(Run self)
+        {
+            _origLivingPlayerCountValue = _origLivingPlayerCount(self);
+            return (int)(_origLivingPlayerCountValue * MultitudesMultiplier);
+        }
+
+        private static int GetParticipatingPlayerCountHook(Run self)
+        {
+            _origParticipatingPlayerCountValue = _origParticipatingPlayerCount(self);
+            return (int)(_origParticipatingPlayerCountValue * MultitudesMultiplier);
+        }
+        #endregion
+
+        #region Console Commands
+        [ConCommand(commandName = "mod_hm_enable", flags = ConVarFlags.SenderMustBeServer, helpText = "Enable HyperMultitudes")]
+        private static void CCEnable(ConCommandArgs args)
+        {
+            if (args.Count == 0)
+            {
+                Debug.LogError("Invalid arguments. Did you mean mod_hm_set_expression or mod_hm_test_expression?");
+                return;
+            }
+
+            if (_hypermultitudesEnabled.Value)
+            {
+                Debug.LogWarning("HyperMultitudes is already enabled.");
+                return;
+            }
+            _hypermultitudesEnabled.Value = true;
+            Debug.Log("HyperMultitudes enabled. Good luck");
+        }
+
+        [ConCommand(commandName = "mod_hm_disable", flags = ConVarFlags.SenderMustBeServer, helpText = "Disable HyperMultitudes")]
+        private static void CCDisable(ConCommandArgs args)
+        {
+            if (args.Count == 0)
+            {
+                Debug.LogError("Invalid arguments. Did you mean mod_hm_set_expression or mod_hm_test_expression?");
+                return;
+            }
+
+            if (!_hypermultitudesEnabled.Value)
+            {
+                Debug.LogWarning("HyperMultitudes is already disabled.");
+                return;
+            }
+            _hypermultitudesEnabled.Value = false;
+            Debug.Log("HyperMultitudes disabled.");
+        }
+
+        [ConCommand(commandName = "mod_hm_set_expression", flags = ConVarFlags.SenderMustBeServer, helpText = "Set HyperMultitudes scaling equation")]
         private static void CCSetExpression(ConCommandArgs args)
         {
             args.CheckArgumentCount(1);
@@ -81,7 +184,7 @@ namespace R2HyperMultitudes
                 string exp = args[0];
                 var expressionNode = new ExpressionParser(exp).Parse();
                 expressionNode.Eval(new ModStageContext { Stage = 1 });
-                Artifact.MultitudesExpression = expressionNode;
+                MultitudesExpression = expressionNode;
                 _scalingExpression.Value = exp;
                 Debug.Log("New HyperMultitudes expression set to: " + exp);
             }
@@ -93,15 +196,15 @@ namespace R2HyperMultitudes
             }
         }
 
-        [ConCommand(commandName = "hm_get_expression", flags = 0, helpText = "Get current HyperMultitudes expression")]
+        [ConCommand(commandName = "mod_hm_get_expression", flags = 0, helpText = "Get current HyperMultitudes expression")]
         private static void CCGetExpression(ConCommandArgs args)
         {
-            Debug.Log(args.Count == 0
+            Debug.LogWarning(args.Count == 0
                 ? "Current Expression: " + _scalingExpression.Value
-                : "Invalid arguments. Did you mean hm_set_expression or hm_test_expression?");
+                : "Invalid arguments. Did you mean mod_hm_set_expression or mod_hm_test_expression?");
         }
 
-        [ConCommand(commandName = "hm_test_expression", flags = ConVarFlags.SenderMustBeServer, helpText = "Test current HyperMultitudes expression with stage index")]
+        [ConCommand(commandName = "mod_hm_test_expression", flags = ConVarFlags.SenderMustBeServer, helpText = "Test current HyperMultitudes expression with stage index")]
         private static void CCTestExpression(ConCommandArgs args)
         {
             args.CheckArgumentCount(1);
@@ -120,8 +223,9 @@ namespace R2HyperMultitudes
             }
             else
             {
-                Debug.Log("Invalid Argument. Correct usage is `hm_test_expression <number>`");
+                Debug.LogError("Invalid Argument. Correct usage is `mod_hm_test_expression <number>`");
             }
         }
+        #endregion
     }
 }
