@@ -1,0 +1,7 @@
+{
+  "name": "HyperMultitudes",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/Raoul1808/R2HyperMultitudes",
+  "description": "Multitudes, but it scales up every stage. Configurable using a math expression.",
+  "dependencies": ["bbepis-BepInExPack-5.4.2114"]
+}
