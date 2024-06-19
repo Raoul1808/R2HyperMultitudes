@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using BepInEx;
 using BepInEx.Configuration;
 using MonoMod.Cil;
@@ -7,6 +8,7 @@ using R2API.Utils;
 using R2HyperMultitudes.MathParser;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 
 [assembly: HG.Reflection.SearchableAttribute.OptIn]
 namespace R2HyperMultitudes
@@ -86,7 +88,10 @@ namespace R2HyperMultitudes
                 if (_hypermultitudesEnabled.Value)
                 {
                     if (nextScene.sceneType == SceneType.Stage)
+                    {
                         StageIndex += 1;
+                        SendChatScaling();
+                    }
                 }
             };
             Run.onRunStartGlobal += run =>
@@ -117,6 +122,34 @@ namespace R2HyperMultitudes
             };
         }
 
+        private static void SendChatScaling()
+        {
+            if (!NetworkServer.active)
+                return;
+
+            Chat.SendBroadcastChat(
+                new Chat.SimpleChatMessage()
+                {
+                    baseToken = "HyperMultitudes Multiplier now at: ",
+                    paramTokens = new[] { MultitudesMultiplier.ToString(CultureInfo.InvariantCulture) }
+                }
+            );
+        }
+
+        private static void SendChatExpression()
+        {
+            if (!NetworkServer.active)
+                return;
+
+            Chat.SendBroadcastChat(
+                new Chat.SimpleChatMessage()
+                {
+                    baseToken = "HyperMultitudes Expression set to: {}",
+                    paramTokens = new[] { _scalingExpression.Value },
+                }
+            );
+        }
+        
         #region Hooks
         private delegate int RunInstanceReturnInt(Run self);
         private static RunInstanceReturnInt _origLivingPlayerCount;
@@ -187,6 +220,7 @@ namespace R2HyperMultitudes
                 MultitudesExpression = expressionNode;
                 _scalingExpression.Value = exp;
                 Debug.Log("New HyperMultitudes expression set to: " + exp);
+                SendChatExpression();
             }
             catch (Exception e)
             {
