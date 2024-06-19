@@ -20,9 +20,4 @@
         </PackageReference>
     </ItemGroup>
 
-    <ItemGroup>
-      <None Remove="Backup_Magazine.png" />
-      <None Remove="The_Back-up.png" />
-    </ItemGroup>
-
 </Project>
