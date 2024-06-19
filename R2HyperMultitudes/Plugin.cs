@@ -23,7 +23,7 @@ namespace R2HyperMultitudes
         public const string Guid = Author + "." + Name;
         public const string Author = "Raoul1808";
         public const string Name = "R2HyperMultitudes";
-        public const string Version = "0.1.0";
+        public const string Version = "1.0.0";
         #endregion
 
         #region Config
