@@ -216,10 +216,19 @@ namespace R2HyperMultitudes
             {
                 string exp = args[0];
                 var expressionNode = new ExpressionParser(exp).Parse();
+                var stageContext = new ModStageContext { Stage = 1 };
                 expressionNode.Eval(new ModStageContext { Stage = 1 });
                 MultitudesExpression = expressionNode;
                 _scalingExpression.Value = exp;
                 Debug.Log("New HyperMultitudes expression set to: " + exp);
+                Debug.Log("Testing new expression...");
+                for (int i = 1; i <= 10; i++)
+                {
+                    stageContext.Stage = i;
+                    var result = expressionNode.Eval(stageContext);
+                    Debug.Log($"Stage = {i}, Result = {result}");
+                }
+                Debug.Log("Testing done. If these results don't look right to you, double-check your expression and make sure it is properly wrapped between quotation marks (e.g: \"2 * stage\")");
                 SendChatExpression();
             }
             catch (Exception e)
